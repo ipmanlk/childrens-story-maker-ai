@@ -17,10 +17,10 @@ export default function Home() {
         />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <div className="min-h-screen bg-gradient-to-b from-blue-100 to-purple-100">
+      <div className="bg-gradient-to-b from-blue-100 to-purple-100">
         <Navbar />
 
-        <main className="container mx-auto px-4 py-8 sm:px-6 sm:py-12">
+        <main className="container mx-auto min-h-screen px-4 py-8 sm:px-6 sm:py-12">
           <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 p-8 text-center shadow-xl">
             <div className="relative z-10">
               <h1 className="mb-4 text-4xl font-extrabold text-white drop-shadow-lg sm:text-5xl lg:text-6xl">
