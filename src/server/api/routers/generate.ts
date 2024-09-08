@@ -65,7 +65,7 @@ export const generateRouter = createTRPCRouter({
           {
             role: "system",
             content:
-              "You are a helpful assistant that breaks down a story into segments for a video. Each segment is a JSON object with a visual and a narration property. The visual is used to generate an image for the scene and the narration is used to generate a voiceover for the video. Output the segments as a JSON array.",
+              "You are a helpful assistant that breaks down a story into segments for a video. Each segment is a JSON object with a visual and a narration property. The visual is used to generate an image for the scene and the narration is used to generate a voiceover for the video. Output the segments as a JSON array. Visual is max 120 chracters. Narration is max 200 characters.",
           },
           {
             role: "user",

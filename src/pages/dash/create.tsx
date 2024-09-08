@@ -334,36 +334,38 @@ const SegmentEditor: React.FC<SegmentEditorProps> = ({
       {story.map((segment, index) => (
         <div key={index} className="mb-6 rounded-md border border-gray-200 p-4">
           <h3 className="mb-2 font-bold">Segment {index + 1}</h3>
-          <div className="mb-4">
-            <img
-              src={segment.imageUrl}
-              alt={`Segment ${index + 1}`}
-              className="mb-2 rounded-md"
-            />
-            <button
-              onClick={() => handleRegenerateImage(index)}
-              className="rounded-md bg-indigo-600 px-4 py-2 text-white transition-colors hover:bg-indigo-700"
-              disabled={regenerateImage.isPending}
-            >
-              {regenerateImage.isPending
-                ? "Regenerating..."
-                : "Regenerate Image"}
-            </button>
-          </div>
-          <div className="mb-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Visual
-            </label>
-            <input
-              type="text"
-              className="mt-1 block w-full rounded-md border border-gray-300 p-2 shadow-sm"
-              value={segment.visual}
-              onChange={(e) =>
-                handleInputChange(index, "visual", e.target.value)
-              }
-            />
-            <div className="mt-1 text-right text-sm text-gray-500">
-              {segment.visual.length}/{maxCharactersVisual} characters
+          <div className="mb-4 flex flex-col md:flex-row">
+            <div className="mb-4 md:mb-0 md:mr-4 md:w-1/2">
+              <label className="block text-sm font-medium text-gray-700">
+                Visual
+              </label>
+              <input
+                type="text"
+                className="mt-1 block w-full rounded-md border border-gray-300 p-2 shadow-sm"
+                value={segment.visual}
+                onChange={(e) =>
+                  handleInputChange(index, "visual", e.target.value)
+                }
+              />
+              <div className="mt-1 text-right text-sm text-gray-500">
+                {segment.visual.length}/{maxCharactersVisual} characters
+              </div>
+              <button
+                onClick={() => handleRegenerateImage(index)}
+                className="mt-2 rounded-md bg-indigo-600 px-4 py-2 text-white transition-colors hover:bg-indigo-700"
+                disabled={regenerateImage.isPending}
+              >
+                {regenerateImage.isPending
+                  ? "Regenerating..."
+                  : "Regenerate Image"}
+              </button>
+            </div>
+            <div className="md:w-1/2">
+              <img
+                src={segment.imageUrl}
+                alt={`Segment ${index + 1}`}
+                className="mb-2 h-48 w-full rounded-md object-cover"
+              />
             </div>
           </div>
           <div>
