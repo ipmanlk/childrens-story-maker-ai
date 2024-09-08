@@ -11,12 +11,12 @@ interface ScriptSegment {
 }
 
 const CreatePage: React.FC = () => {
-  const generateScript = api.generate.createScript.useMutation();
+  const generateStory = api.generate.createStory.useMutation();
 
   const [step, setStep] = useState<number>(1);
   const [storyIdea, setStoryIdea] = useState<string>("");
-  const [fullScript, setFullScript] = useState<string>("");
-  const [generatedScript, setGeneratedScript] = useState<ScriptSegment[]>([]);
+  const [fullStory, setFullStory] = useState<string>("");
+  const [generatedStory, setGeneratedStory] = useState<ScriptSegment[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const dummyThemes: string[] = [
@@ -48,18 +48,11 @@ const CreatePage: React.FC = () => {
 
   const handleIdeaSubmit = async () => {
     setIsLoading(true);
-    // setTimeout(() => {
-    //   setFullScript(
-    //     "Once upon a time, in a sky full of twinkling stars, there was a little star who dreamed of shining the brightest. Every night, the little star tried its best, but it was always a little dimmer than the others. One night, the little star met a wise old moon who shared a secret.",
-    //   );
-    //   setIsLoading(false);
-    //   setStep(2);
-    // }, 2000); // Simulate 2 seconds of loading
     try {
-      const text = await generateScript.mutateAsync({
+      const text = await generateStory.mutateAsync({
         idea: storyIdea,
       });
-      setFullScript(text);
+      setFullStory(text);
       setIsLoading(false);
       setStep(2);
     } catch (e: unknown) {
@@ -69,10 +62,10 @@ const CreatePage: React.FC = () => {
     }
   };
 
-  const handleScriptSubmit = (): void => {
+  const handleStorySubmit = (): void => {
     setIsLoading(true);
     setTimeout(() => {
-      setGeneratedScript(dummyScript);
+      setGeneratedStory(dummyScript);
       setIsLoading(false);
       setStep(3);
     }, 2000); // Simulate 2 seconds of loading
@@ -83,8 +76,8 @@ const CreatePage: React.FC = () => {
     field: keyof ScriptSegment,
     value: string,
   ): void => {
-    setGeneratedScript((script) =>
-      script.map((segment, i) =>
+    setGeneratedStory((story) =>
+      story.map((segment, i) =>
         i === index ? { ...segment, [field]: value } : segment,
       ),
     );
@@ -123,16 +116,16 @@ const CreatePage: React.FC = () => {
             />
           )}
           {step === 2 && (
-            <ScriptEditor
-              script={fullScript}
-              onEdit={setFullScript}
-              onSubmit={handleScriptSubmit}
+            <StoryEditor
+              story={fullStory}
+              onEdit={setFullStory}
+              onSubmit={handleStorySubmit}
               isLoading={isLoading}
             />
           )}
           {step === 3 && (
             <SegmentEditor
-              script={generatedScript}
+              story={generatedStory}
               onEdit={handleSegmentsEdit}
               onFinalize={handleFinalize}
             />
@@ -152,7 +145,7 @@ interface StepIndicatorProps {
 const StepIndicator: React.FC<StepIndicatorProps> = ({ currentStep }) => {
   const steps = [
     { icon: FaLightbulb, label: "Idea" },
-    { icon: FaPencilAlt, label: "Script" },
+    { icon: FaPencilAlt, label: "Story" },
     { icon: FaFileAlt, label: "Segments" },
     { icon: FaVideo, label: "Video" },
   ];
@@ -231,22 +224,22 @@ const IdeaInput: React.FC<IdeaInputProps> = ({
         {isLoading ? (
           <div className="inline-block h-5 w-5 animate-spin rounded-full border-t-2 border-white"></div>
         ) : (
-          "Generate Script"
+          "Generate Story"
         )}
       </button>
     </div>
   );
 };
 
-interface ScriptEditorProps {
-  script: string;
+interface StoryEditorProps {
+  story: string;
   onEdit: React.Dispatch<React.SetStateAction<string>>;
   onSubmit: () => void;
   isLoading: boolean;
 }
 
-const ScriptEditor: React.FC<ScriptEditorProps> = ({
-  script,
+const StoryEditor: React.FC<StoryEditorProps> = ({
+  story,
   onEdit,
   onSubmit,
   isLoading,
@@ -254,14 +247,14 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({
   return (
     <div className="rounded-lg bg-white p-6 shadow-md">
       <h2 className="mb-4 text-2xl font-bold text-indigo-700">
-        Edit Your Script
+        Edit Your Story
       </h2>
       <textarea
         className="mb-4 w-full rounded-md border border-gray-300 p-2"
         rows={10}
-        value={script}
+        value={story}
         onChange={(e) => onEdit(e.target.value)}
-        placeholder="Your full story script..."
+        placeholder="Your full story..."
       />
       <button
         className="rounded-md bg-indigo-600 px-6 py-2 text-white transition-colors hover:bg-indigo-700 disabled:bg-indigo-400"
@@ -279,13 +272,13 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({
 };
 
 interface SegmentEditorProps {
-  script: ScriptSegment[];
+  story: ScriptSegment[];
   onEdit: (index: number, field: keyof ScriptSegment, value: string) => void;
   onFinalize: () => void;
 }
 
 const SegmentEditor: React.FC<SegmentEditorProps> = ({
-  script,
+  story,
   onEdit,
   onFinalize,
 }) => {
@@ -317,7 +310,7 @@ const SegmentEditor: React.FC<SegmentEditorProps> = ({
           the text that will be read aloud. Edit these to fine-tune your story!
         </p>
       </div>
-      {script.map((segment, index) => (
+      {story.map((segment, index) => (
         <div key={index} className="mb-6 rounded-md border border-gray-200 p-4">
           <h3 className="mb-2 font-bold">Segment {index + 1}</h3>
           <div className="mb-2">

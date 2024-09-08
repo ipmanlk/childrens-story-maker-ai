@@ -4,7 +4,7 @@ import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 import { openai } from "@/server/lib/openai";
 
 export const generateRouter = createTRPCRouter({
-  createScript: publicProcedure
+  createStory: publicProcedure
     .input(z.object({ idea: z.string().min(10).max(200) }))
     .mutation(async ({ input }) => {
       console.log("Generating script...");
@@ -23,7 +23,7 @@ export const generateRouter = createTRPCRouter({
             content: `Write a children's story for a 30 seconds video based on the following idea: ${input.idea}`,
           },
         ],
-        max_tokens: 400,
+        max_tokens: 250,
       });
 
       return scriptText.choices[0]?.message.content ?? "Something went wrong";
