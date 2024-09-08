@@ -65,7 +65,7 @@ export const generateRouter = createTRPCRouter({
           {
             role: "system",
             content:
-              "You are a helpful assistant that breaks down a story into segments for a video. Each segment is a JSON object with a visual and a narration property. The visual is used to generate an image for the schene and the narration is used to generate a voiceover for the video. Output the segments as a JSON array.",
+              "You are a helpful assistant that breaks down a story into segments for a video. Each segment is a JSON object with a visual and a narration property. The visual is used to generate an image for the scene and the narration is used to generate a voiceover for the video. Output the segments as a JSON array.",
           },
           {
             role: "user",
@@ -87,7 +87,49 @@ export const generateRouter = createTRPCRouter({
         throw new Error("Segments not found in the response");
       }
 
-      return jsonObj.segments as { visual: string; narration: string }[];
+      const segmentsWithImages = [];
+      for (const segment of jsonObj.segments) {
+        try {
+          const imageRes = await openai.images.generate({
+            prompt: `Context: ${segment.visual} | Instructions: for a kids story. DO NOT INCLUDE TEXT IN THE IMAGE`,
+            model: "dall-e-3",
+            n: 1,
+            size: "1024x1024",
+          });
+          const imageUrl = imageRes.data[0]?.url;
+          if (!imageUrl) {
+            throw new Error("No image URL");
+          }
+          segmentsWithImages.push({ ...segment, imageUrl });
+        } catch (e: unknown) {
+          console.error(e);
+          const errrMsg = e instanceof Error ? e.message : "unknown error";
+          console.error(`Error generating image for segment: ${errrMsg}`);
+          // Optionally, you can add error handling here, such as retrying or using a placeholder image
+        }
+      }
+
+      return segmentsWithImages as {
+        visual: string;
+        narration: string;
+        imageUrl: string;
+      }[];
+    }),
+
+  regenerateImage: publicProcedure
+    .input(z.object({ prompt: z.string().min(10).max(120) }))
+    .mutation(async ({ input }) => {
+      const imageRes = await openai.images.generate({
+        prompt: `Context: ${input.prompt} | Instructions: for a kids story. DO NOT INCLUDE TEXT IN THE IMAGE`,
+        model: "dall-e-3",
+        n: 1,
+        size: "1024x1024",
+      });
+      const imageUrl = imageRes.data[0]?.url;
+      if (!imageUrl) {
+        throw new Error("No image URL");
+      }
+      return imageUrl;
     }),
 
   createVideo: publicProcedure
@@ -95,8 +137,9 @@ export const generateRouter = createTRPCRouter({
       z.object({
         segments: z.array(
           z.object({
-            visual: z.string().min(10).max(120),
+            visual: z.string().min(10).max(200),
             narration: z.string().min(10).max(200),
+            imageUrl: z.string().min(10).max(200),
           }),
         ),
       }),
@@ -112,7 +155,7 @@ export const generateRouter = createTRPCRouter({
 });
 
 const generateSegmentClips = async (
-  segments: { visual: string; narration: string }[],
+  segments: { visual: string; narration: string; imageUrl: string }[],
   jobId: string,
 ) => {
   const canvasDir = path.join(process.cwd(), "gen", jobId, "canvas");
@@ -125,19 +168,10 @@ const generateSegmentClips = async (
 
   let i = 1;
   for (const segment of segments) {
-    const imageRes = await openai.images.generate({
-      prompt: `Context: ${segment.visual} | Instructions: for a kids story. DO NOT INCLUDE TEXT IN THE IMAGE`,
-      model: "dall-e-3",
-      n: 1,
-      size: "1024x1024",
-    });
-    const imageUrl = imageRes.data[0]?.url;
-    if (!imageUrl) {
-      throw new Error("No image URL");
-    }
-
     // Generate a frame with caption
-    const inputImage = await fetch(imageUrl).then((res) => res.arrayBuffer());
+    const inputImage = await fetch(segment.imageUrl).then((res) =>
+      res.arrayBuffer(),
+    );
     const frameBuffer = await generateFrameWithCaption(
       Buffer.from(inputImage),
       segment.narration,

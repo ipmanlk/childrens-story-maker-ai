@@ -8,6 +8,7 @@ import { api } from "@/utils/api";
 interface StorySegment {
   visual: string;
   narration: string;
+  imageUrl: string;
 }
 
 const CreatePage: React.FC = () => {
@@ -292,6 +293,7 @@ const SegmentEditor: React.FC<SegmentEditorProps> = ({
 }) => {
   const maxCharactersNarration = 200;
   const maxCharactersVisual = 120;
+  const regenerateImage = api.generate.regenerateImage.useMutation();
 
   const handleInputChange = (
     index: number,
@@ -302,6 +304,17 @@ const SegmentEditor: React.FC<SegmentEditorProps> = ({
       field === "visual" ? maxCharactersVisual : maxCharactersNarration;
     const newValue = value.slice(0, maxChars);
     onEdit(index, field, newValue);
+  };
+
+  const handleRegenerateImage = async (index: number) => {
+    try {
+      const newImageUrl = await regenerateImage.mutateAsync({
+        prompt: story[index].visual,
+      });
+      onEdit(index, "imageUrl", newImageUrl);
+    } catch (error) {
+      console.error("Failed to regenerate image:", error);
+    }
   };
 
   return (
@@ -321,6 +334,22 @@ const SegmentEditor: React.FC<SegmentEditorProps> = ({
       {story.map((segment, index) => (
         <div key={index} className="mb-6 rounded-md border border-gray-200 p-4">
           <h3 className="mb-2 font-bold">Segment {index + 1}</h3>
+          <div className="mb-4">
+            <img
+              src={segment.imageUrl}
+              alt={`Segment ${index + 1}`}
+              className="mb-2 rounded-md"
+            />
+            <button
+              onClick={() => handleRegenerateImage(index)}
+              className="rounded-md bg-indigo-600 px-4 py-2 text-white transition-colors hover:bg-indigo-700"
+              disabled={regenerateImage.isPending}
+            >
+              {regenerateImage.isPending
+                ? "Regenerating..."
+                : "Regenerate Image"}
+            </button>
+          </div>
           <div className="mb-2">
             <label className="block text-sm font-medium text-gray-700">
               Visual
