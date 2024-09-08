@@ -5,18 +5,19 @@ import Footer from "@/components/Footer";
 import { FaLightbulb, FaPencilAlt, FaFileAlt, FaVideo } from "react-icons/fa";
 import { api } from "@/utils/api";
 
-interface ScriptSegment {
+interface StorySegment {
   visual: string;
   narration: string;
 }
 
 const CreatePage: React.FC = () => {
-  const generateStory = api.generate.createStory.useMutation();
+  const createStory = api.generate.createStory.useMutation();
+  const createSegments = api.generate.createSegments.useMutation();
 
   const [step, setStep] = useState<number>(1);
   const [storyIdea, setStoryIdea] = useState<string>("");
   const [fullStory, setFullStory] = useState<string>("");
-  const [generatedStory, setGeneratedStory] = useState<ScriptSegment[]>([]);
+  const [generatedStory, setGeneratedStory] = useState<StorySegment[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const dummyThemes: string[] = [
@@ -27,29 +28,10 @@ const CreatePage: React.FC = () => {
     "Fairy Tale Castle",
   ];
 
-  const dummyScript: ScriptSegment[] = [
-    {
-      visual: "A vast night sky filled with twinkling stars.",
-      narration:
-        "Once upon a time, in a sky full of twinkling stars, there was a little star who dreamed of shining the brightest.",
-    },
-    {
-      visual:
-        "The little star trying to shine brighter but looking a bit dimmer compared to the other stars.",
-      narration:
-        "Every night, the little star tried its best, but it was always a little dimmer than the others.",
-    },
-    {
-      visual: "The little star meeting a wise old moon.",
-      narration:
-        "One night, the little star met a wise old moon who shared a secret.",
-    },
-  ];
-
   const handleIdeaSubmit = async () => {
     setIsLoading(true);
     try {
-      const text = await generateStory.mutateAsync({
+      const text = await createStory.mutateAsync({
         idea: storyIdea,
       });
       setFullStory(text);
@@ -62,18 +44,26 @@ const CreatePage: React.FC = () => {
     }
   };
 
-  const handleStorySubmit = (): void => {
+  const handleStorySubmit = async () => {
     setIsLoading(true);
-    setTimeout(() => {
-      setGeneratedStory(dummyScript);
+
+    try {
+      const res = await createSegments.mutateAsync({
+        story: fullStory,
+      });
+      setGeneratedStory(res);
       setIsLoading(false);
       setStep(3);
-    }, 2000); // Simulate 2 seconds of loading
+    } catch (e: unknown) {
+      console.error(e);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSegmentsEdit = (
     index: number,
-    field: keyof ScriptSegment,
+    field: keyof StorySegment,
     value: string,
   ): void => {
     setGeneratedStory((story) =>
@@ -282,8 +272,8 @@ const StoryEditor: React.FC<StoryEditorProps> = ({
 };
 
 interface SegmentEditorProps {
-  story: ScriptSegment[];
-  onEdit: (index: number, field: keyof ScriptSegment, value: string) => void;
+  story: StorySegment[];
+  onEdit: (index: number, field: keyof StorySegment, value: string) => void;
   onFinalize: () => void;
 }
 
@@ -297,7 +287,7 @@ const SegmentEditor: React.FC<SegmentEditorProps> = ({
 
   const handleInputChange = (
     index: number,
-    field: keyof ScriptSegment,
+    field: keyof StorySegment,
     value: string,
   ) => {
     const maxChars =
