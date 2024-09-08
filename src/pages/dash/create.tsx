@@ -3,6 +3,7 @@ import Head from "next/head";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { FaLightbulb, FaPencilAlt, FaFileAlt, FaVideo } from "react-icons/fa";
+import { api } from "@/utils/api";
 
 interface ScriptSegment {
   visual: string;
@@ -10,6 +11,8 @@ interface ScriptSegment {
 }
 
 const CreatePage: React.FC = () => {
+  const generateScript = api.generate.createScript.useMutation();
+
   const [step, setStep] = useState<number>(1);
   const [storyIdea, setStoryIdea] = useState<string>("");
   const [fullScript, setFullScript] = useState<string>("");
@@ -43,15 +46,27 @@ const CreatePage: React.FC = () => {
     },
   ];
 
-  const handleIdeaSubmit = (): void => {
+  const handleIdeaSubmit = async () => {
     setIsLoading(true);
-    setTimeout(() => {
-      setFullScript(
-        "Once upon a time, in a sky full of twinkling stars, there was a little star who dreamed of shining the brightest. Every night, the little star tried its best, but it was always a little dimmer than the others. One night, the little star met a wise old moon who shared a secret.",
-      );
+    // setTimeout(() => {
+    //   setFullScript(
+    //     "Once upon a time, in a sky full of twinkling stars, there was a little star who dreamed of shining the brightest. Every night, the little star tried its best, but it was always a little dimmer than the others. One night, the little star met a wise old moon who shared a secret.",
+    //   );
+    //   setIsLoading(false);
+    //   setStep(2);
+    // }, 2000); // Simulate 2 seconds of loading
+    try {
+      const text = await generateScript.mutateAsync({
+        idea: storyIdea,
+      });
+      setFullScript(text);
       setIsLoading(false);
       setStep(2);
-    }, 2000); // Simulate 2 seconds of loading
+    } catch (e: unknown) {
+      console.error(e);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleScriptSubmit = (): void => {
