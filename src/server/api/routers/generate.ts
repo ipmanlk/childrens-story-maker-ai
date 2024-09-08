@@ -23,7 +23,7 @@ export const generateRouter = createTRPCRouter({
             content: `Write a children's story for a 30 seconds video based on the following idea: ${input.idea}`,
           },
         ],
-        max_tokens: 250,
+        max_tokens: 200,
       });
 
       return scriptText.choices[0]?.message.content ?? "Something went wrong";

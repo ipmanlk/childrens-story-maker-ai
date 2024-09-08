@@ -244,22 +244,32 @@ const StoryEditor: React.FC<StoryEditorProps> = ({
   onSubmit,
   isLoading,
 }) => {
+  const maxCharacters = 1000;
+
+  const handleStoryChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newStory = e.target.value.slice(0, maxCharacters);
+    onEdit(newStory);
+  };
+
   return (
     <div className="rounded-lg bg-white p-6 shadow-md">
       <h2 className="mb-4 text-2xl font-bold text-indigo-700">
         Edit Your Story
       </h2>
       <textarea
-        className="mb-4 w-full rounded-md border border-gray-300 p-2"
+        className="mb-2 w-full rounded-md border border-gray-300 p-2"
         rows={10}
         value={story}
-        onChange={(e) => onEdit(e.target.value)}
+        onChange={handleStoryChange}
         placeholder="Your full story..."
       />
+      <div className="mb-4 text-right text-sm text-gray-500">
+        {story.length}/{maxCharacters} characters
+      </div>
       <button
         className="rounded-md bg-indigo-600 px-6 py-2 text-white transition-colors hover:bg-indigo-700 disabled:bg-indigo-400"
         onClick={onSubmit}
-        disabled={isLoading}
+        disabled={isLoading || story.length === 0}
       >
         {isLoading ? (
           <div className="inline-block h-5 w-5 animate-spin rounded-full border-t-2 border-white"></div>
