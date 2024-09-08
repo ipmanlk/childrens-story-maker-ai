@@ -139,7 +139,7 @@ export const generateRouter = createTRPCRouter({
           z.object({
             visual: z.string().min(10).max(200),
             narration: z.string().min(10).max(200),
-            imageUrl: z.string().min(10).max(200),
+            imageUrl: z.string().min(10).max(800),
           }),
         ),
       }),

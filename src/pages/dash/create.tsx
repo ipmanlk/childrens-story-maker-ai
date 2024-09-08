@@ -333,15 +333,15 @@ const SegmentEditor: React.FC<SegmentEditorProps> = ({
       </div>
       {story.map((segment, index) => (
         <div key={index} className="mb-6 rounded-md border border-gray-200 p-4">
-          <h3 className="mb-2 font-bold">Segment {index + 1}</h3>
-          <div className="mb-4 flex flex-col md:flex-row">
-            <div className="mb-4 md:mb-0 md:mr-4 md:w-1/2">
-              <label className="block text-sm font-medium text-gray-700">
-                Visual
+          <h3 className="mb-4 font-bold">Segment {index + 1}</h3>
+          <div className="flex flex-col md:flex-row md:space-x-4">
+            <div className="mb-4 md:mb-0 md:w-1/2">
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Visual Description
               </label>
-              <input
-                type="text"
-                className="mt-1 block w-full rounded-md border border-gray-300 p-2 shadow-sm"
+              <textarea
+                className="w-full rounded-md border border-gray-300 p-2 shadow-sm"
+                rows={3}
                 value={segment.visual}
                 onChange={(e) =>
                   handleInputChange(index, "visual", e.target.value)
@@ -361,19 +361,24 @@ const SegmentEditor: React.FC<SegmentEditorProps> = ({
               </button>
             </div>
             <div className="md:w-1/2">
-              <img
-                src={segment.imageUrl}
-                alt={`Segment ${index + 1}`}
-                className="mb-2 h-48 w-full rounded-md object-cover"
-              />
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Generated Image
+              </label>
+              <div className="relative aspect-video overflow-hidden rounded-md">
+                <img
+                  src={segment.imageUrl}
+                  alt={`Segment ${index + 1}`}
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+              </div>
             </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
+          <div className="mt-4">
+            <label className="mb-2 block text-sm font-medium text-gray-700">
               Narration
             </label>
             <textarea
-              className="mt-1 block w-full rounded-md border border-gray-300 p-2 shadow-sm"
+              className="w-full rounded-md border border-gray-300 p-2 shadow-sm"
               rows={3}
               value={segment.narration}
               onChange={(e) =>
