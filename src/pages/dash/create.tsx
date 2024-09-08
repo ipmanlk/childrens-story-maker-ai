@@ -1,8 +1,8 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Head from "next/head";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { FaLightbulb, FaPencilAlt, FaVideo } from "react-icons/fa";
+import { FaLightbulb, FaPencilAlt, FaFileAlt, FaVideo } from "react-icons/fa";
 
 interface ScriptSegment {
   visual: string;
@@ -12,7 +12,9 @@ interface ScriptSegment {
 const CreatePage: React.FC = () => {
   const [step, setStep] = useState<number>(1);
   const [storyIdea, setStoryIdea] = useState<string>("");
+  const [fullScript, setFullScript] = useState<string>("");
   const [generatedScript, setGeneratedScript] = useState<ScriptSegment[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const dummyThemes: string[] = [
     "Space Adventure",
@@ -42,22 +44,39 @@ const CreatePage: React.FC = () => {
   ];
 
   const handleIdeaSubmit = (): void => {
-    setGeneratedScript(dummyScript);
-    setStep(2);
+    setIsLoading(true);
+    setTimeout(() => {
+      setFullScript(
+        "Once upon a time, in a sky full of twinkling stars, there was a little star who dreamed of shining the brightest. Every night, the little star tried its best, but it was always a little dimmer than the others. One night, the little star met a wise old moon who shared a secret.",
+      );
+      setIsLoading(false);
+      setStep(2);
+    }, 2000); // Simulate 2 seconds of loading
   };
 
-  const handleScriptEdit = (
+  const handleScriptSubmit = (): void => {
+    setIsLoading(true);
+    setTimeout(() => {
+      setGeneratedScript(dummyScript);
+      setIsLoading(false);
+      setStep(3);
+    }, 2000); // Simulate 2 seconds of loading
+  };
+
+  const handleSegmentsEdit = (
     index: number,
     field: keyof ScriptSegment,
     value: string,
   ): void => {
-    const updatedScript = [...generatedScript];
-    updatedScript[index][field] = value;
-    setGeneratedScript(updatedScript);
+    setGeneratedScript((script) =>
+      script.map((segment, i) =>
+        i === index ? { ...segment, [field]: value } : segment,
+      ),
+    );
   };
 
   const handleFinalize = (): void => {
-    setStep(3);
+    setStep(4);
   };
 
   return (
@@ -85,16 +104,25 @@ const CreatePage: React.FC = () => {
               setStoryIdea={setStoryIdea}
               onSubmit={handleIdeaSubmit}
               themes={dummyThemes}
+              isLoading={isLoading}
             />
           )}
           {step === 2 && (
             <ScriptEditor
+              script={fullScript}
+              onEdit={setFullScript}
+              onSubmit={handleScriptSubmit}
+              isLoading={isLoading}
+            />
+          )}
+          {step === 3 && (
+            <SegmentEditor
               script={generatedScript}
-              onEdit={handleScriptEdit}
+              onEdit={handleSegmentsEdit}
               onFinalize={handleFinalize}
             />
           )}
-          {step === 3 && <VideoGeneration />}
+          {step === 4 && <VideoGeneration />}
         </main>
         <Footer />
       </div>
@@ -110,6 +138,7 @@ const StepIndicator: React.FC<StepIndicatorProps> = ({ currentStep }) => {
   const steps = [
     { icon: FaLightbulb, label: "Idea" },
     { icon: FaPencilAlt, label: "Script" },
+    { icon: FaFileAlt, label: "Segments" },
     { icon: FaVideo, label: "Video" },
   ];
 
@@ -133,6 +162,7 @@ interface IdeaInputProps {
   setStoryIdea: React.Dispatch<React.SetStateAction<string>>;
   onSubmit: () => void;
   themes: string[];
+  isLoading: boolean;
 }
 
 const IdeaInput: React.FC<IdeaInputProps> = ({
@@ -140,6 +170,7 @@ const IdeaInput: React.FC<IdeaInputProps> = ({
   setStoryIdea,
   onSubmit,
   themes,
+  isLoading,
 }) => {
   const maxCharacters = 200;
 
@@ -178,22 +209,67 @@ const IdeaInput: React.FC<IdeaInputProps> = ({
         {storyIdea.length}/{maxCharacters} characters
       </div>
       <button
-        className="rounded-md bg-indigo-600 px-6 py-2 text-white transition-colors hover:bg-indigo-700"
+        className="rounded-md bg-indigo-600 px-6 py-2 text-white transition-colors hover:bg-indigo-700 disabled:bg-indigo-400"
         onClick={onSubmit}
+        disabled={isLoading}
       >
-        Generate Script
+        {isLoading ? (
+          <div className="inline-block h-5 w-5 animate-spin rounded-full border-t-2 border-white"></div>
+        ) : (
+          "Generate Script"
+        )}
       </button>
     </div>
   );
 };
 
 interface ScriptEditorProps {
+  script: string;
+  onEdit: React.Dispatch<React.SetStateAction<string>>;
+  onSubmit: () => void;
+  isLoading: boolean;
+}
+
+const ScriptEditor: React.FC<ScriptEditorProps> = ({
+  script,
+  onEdit,
+  onSubmit,
+  isLoading,
+}) => {
+  return (
+    <div className="rounded-lg bg-white p-6 shadow-md">
+      <h2 className="mb-4 text-2xl font-bold text-indigo-700">
+        Edit Your Script
+      </h2>
+      <textarea
+        className="mb-4 w-full rounded-md border border-gray-300 p-2"
+        rows={10}
+        value={script}
+        onChange={(e) => onEdit(e.target.value)}
+        placeholder="Your full story script..."
+      />
+      <button
+        className="rounded-md bg-indigo-600 px-6 py-2 text-white transition-colors hover:bg-indigo-700 disabled:bg-indigo-400"
+        onClick={onSubmit}
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <div className="inline-block h-5 w-5 animate-spin rounded-full border-t-2 border-white"></div>
+        ) : (
+          "Generate Segments"
+        )}
+      </button>
+    </div>
+  );
+};
+
+interface SegmentEditorProps {
   script: ScriptSegment[];
   onEdit: (index: number, field: keyof ScriptSegment, value: string) => void;
   onFinalize: () => void;
 }
 
-const ScriptEditor: React.FC<ScriptEditorProps> = ({
+const SegmentEditor: React.FC<SegmentEditorProps> = ({
   script,
   onEdit,
   onFinalize,
@@ -215,8 +291,17 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({
   return (
     <div className="rounded-lg bg-white p-6 shadow-md">
       <h2 className="mb-4 text-2xl font-bold text-indigo-700">
-        Edit Your Script
+        Edit Your Segments
       </h2>
+      <div className="mb-6 rounded-md bg-blue-50 p-4 text-blue-800">
+        <h3 className="mb-2 font-bold">What are segments?</h3>
+        <p>
+          Segments are short parts of your story that pair a visual description
+          with narration. Each segment will become a scene in your final video.
+          The visual description helps create the image, while the narration is
+          the text that will be read aloud. Edit these to fine-tune your story!
+        </p>
+      </div>
       {script.map((segment, index) => (
         <div key={index} className="mb-6 rounded-md border border-gray-200 p-4">
           <h3 className="mb-2 font-bold">Segment {index + 1}</h3>
