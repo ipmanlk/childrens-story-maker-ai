@@ -13,6 +13,7 @@ interface StorySegment {
 const CreatePage: React.FC = () => {
   const createStory = api.generate.createStory.useMutation();
   const createSegments = api.generate.createSegments.useMutation();
+  const createVideo = api.generate.createVideo.useMutation();
 
   const [step, setStep] = useState<number>(1);
   const [storyIdea, setStoryIdea] = useState<string>("");
@@ -73,8 +74,15 @@ const CreatePage: React.FC = () => {
     );
   };
 
-  const handleFinalize = (): void => {
+  const handleFinalize = async () => {
     setStep(4);
+    try {
+      const res = await createVideo.mutateAsync({
+        segments: generatedStory,
+      });
+    } catch (e: unknown) {
+      console.error(e);
+    }
   };
 
   return (

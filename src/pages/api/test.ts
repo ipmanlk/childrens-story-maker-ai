@@ -137,8 +137,21 @@ async function generateVideo() {
     const inputAudio = path.join(audioDir, `${i}.mp3`);
     const outputSegment = path.join(outputDir, `segment_${i}.mp4`);
 
+    // Get audio duration
+    const { stdout: durationOutput } = await execAsync(
+      `ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${inputAudio}"`
+    );
+    const segmentDuration = parseFloat(durationOutput.trim());
+
+    // Calculate fade out start time
+    const fadeOutStart = segmentDuration - 0.5;
+
+    // Add fade in/out effects without reducing duration
     await execAsync(
-      `ffmpeg -loop 1 -i "${inputImage}" -i "${inputAudio}" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -shortest "${outputSegment}"`,
+      `ffmpeg -loop 1 -i "${inputImage}" -i "${inputAudio}" -filter_complex ` +
+      `"[0:v]fade=t=in:st=0:d=0.5,fade=t=out:st=${fadeOutStart}:d=0.5[v]; ` +
+      `[1:a]afade=t=in:st=0:d=0.5,afade=t=out:st=${fadeOutStart}:d=0.5[a]" ` +
+      `-map "[v]" -map "[a]" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -t ${segmentDuration} "${outputSegment}"`
     );
   }
 
